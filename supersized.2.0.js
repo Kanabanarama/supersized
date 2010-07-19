@@ -211,7 +211,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
 		//Captions require img in <a>
 	    if (options.slide_captions == 1) $('#slidecaption').html($(nextslide).find('img').attr('title'));
 		
-	    nextslide.hide().addClass('activeslide')
+	    nextslide.hide().addClass('activeslide');
 	    	if (options.transition == 0){
 	    		nextslide.show(); $.inAnimation = false;
 	    	}
@@ -261,7 +261,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
 		//Captions require img in <a>
 	    if (options.slide_captions == 1) $('#slidecaption').html($(nextslide).find('img').attr('title'));
 		
-	    nextslide.hide().addClass('activeslide')
+	    nextslide.hide().addClass('activeslide');
 	    	if (options.transition == 0){
 	    		nextslide.show(); $.inAnimation = false;
 	    	}
