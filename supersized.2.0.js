@@ -9,41 +9,42 @@ Thanks to Aen for preloading, fade effect, & vertical centering
  (function($) {
 
     //Resize image on ready or resize
-    $.fn.supersized = function() {
+    $.fn.supersized = function(opts) {
+        opts = opts || {};
         $.inAnimation = false;
         $.paused = false;
-        var options = $.extend($.fn.supersized.defaults, $.fn.supersized.options);
+        var options = $.extend($.fn.supersized.defaults, opts);
 
         return this.
         bind("load.supersized",
         function() {
             var $this = $(this);
-            $('#loading').hide();
             $this.fadeIn('fast');
-            $('#content').show();
+            if (options.loading) $(options.loading).hide();
+            if (options.content) $(options.content).show();
             if ($this.find('.activeslide').length == 0) $this.find('a:first').addClass('activeslide');
-            if (options.slide_captions == 1) $('#slidecaption').html($this.find('.activeslide').find('img').attr('title'));
+            if (options.captions) $(options.captions).html($this.find('.activeslide').find('img').attr('title'));
             $this.resizenow();
-            if (options.navigation == 0) $('#navigation').hide();
+            if (options.navigation) $(options.navigation).show();
             //Slideshow
-            if (options.slideshow == 1) {
-                if (options.slide_counter == 1) {
+            if (options.slideshow) {
+                if (options.slide_counter) {
                     //Initiate slide counter if active
-                    $('#slidecounter .slidenumber').html(1);
-                    $('#slidecounter .totalslides').html($this.children().size());
+                    $(options.slide_counter).find('.slidenumber').html(1);
+                    $(options.slide_counter).find('.totalslides').html($this.children().size());
                 }
                 slideshow_interval = setInterval(function() {
                     $this.trigger("nextslide.supersized");
                 },
                 options.slide_interval);
-                if (options.navigation == 1) {
+                if (options.navigation) {
                     //Skip if no navigation
-                    $('#navigation a').click(function() {
+                    $(options.navigation + ' a').click(function() {
                         $(this).blur();
                         return false;
                     });
                     //Slide Navigation
-                    $('#nextslide').click(function() {
+                    $(options.next).click(function() {
                         if ($.paused) return false;
                         if ($.inAnimation) return false;
                         clearInterval(slideshow_interval);
@@ -54,7 +55,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                         options.slide_interval);
                         return false;
                     });
-                    $('#prevslide').click(function() {
+                    $(options.prev).click(function() {
                         if ($.paused) return false;
                         if ($.inAnimation) return false;
                         clearInterval(slideshow_interval);
@@ -65,7 +66,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                         options.slide_interval);
                         return false;
                     });
-                    $('#nextslide img').hover(function() {
+                    $(options.next + ' img').hover(function() {
                         if ($.paused == true) return false;
                         $(this).attr("src", "/images/forward.gif");
                     },
@@ -73,7 +74,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                         if ($.paused == true) return false;
                         $(this).attr("src", "/images/forward_dull.gif");
                     });
-                    $('#prevslide img').hover(function() {
+                    $(options.prev + ' img').hover(function() {
                         if ($.paused == true) return false;
                         $(this).attr("src", "/images/back.gif");
                     },
@@ -83,7 +84,8 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                     });
 
                     //Play/Pause Button
-                    $('#pauseplay').click(function() {
+                    $(options.pause).
+                      click(function() {
                         if ($.inAnimation) return false;
                         var src = ($(this).find('img').attr("src").match(/play.gif/)) ? "/images/pause.gif": "/images/play.gif";
                         if (src.match(/pause.gif/)) {
@@ -100,17 +102,16 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                         }
                         $(this).find('img').attr("src", src);
                         return false;
-                    });
-                    $('#pauseplay').mouseover(function() {
+                      }).
+                      mouseover(function() {
                         var imagecheck = ($(this).find('img').attr("src").match(/play_dull.gif/));
                         if (imagecheck) {
                             $(this).find('img').attr("src", "/images/play.gif");
                         } else {
                             $(this).find('img').attr("src", "/images/pause.gif");
                         }
-                    });
-
-                    $('#pauseplay').mouseout(function() {
+                      }).
+                      mouseout(function() {
                         var imagecheck = ($(this).find('img').attr("src").match(/play.gif/));
                         if (imagecheck) {
                             $(this).find('img').attr("src", "/images/play_dull.gif");
@@ -130,7 +131,6 @@ Thanks to Aen for preloading, fade effect, & vertical centering
           if ($.inAnimation) return false;
           else $.inAnimation = true;
 
-          var options = $.extend($.fn.supersized.defaults, $.fn.supersized.options);
           var $currentslide = $this.find('.activeslide');
           $currentslide.removeClass('activeslide');
 
@@ -140,24 +140,24 @@ Thanks to Aen for preloading, fade effect, & vertical centering
           var $prevslide = $nextslide.prev().length ? $nextslide.prev() : $this.find('a:last');
 
           //Display slide counter
-          if (options.slide_counter == 1) {
-              var slidecount = $('#slidecounter .slidenumber').html();
-              $currentslide.next().length ? slidecount++:slidecount = 1;
-              $('#slidecounter .slidenumber').html(slidecount);
+          if (options.slide_counter) {
+              var slidecount = $(options.slide_counter).find('.slidenumber').html();
+              $currentslide.next().length ? slidecount++ : slidecount = 1;
+              $(options.slide_counter).find('.slidenumber').html(slidecount);
           }
 
           $('.prevslide').removeClass('prevslide');
           $prevslide.addClass('prevslide');
 
           //Captions require img in <a>
-          if (options.slide_captions == 1) $('#slidecaption').html($nextslide.find('img').attr('title'));
+          if (options.captions) $(options.captions).html($nextslide.find('img').attr('title'));
 
           $nextslide.hide().addClass('activeslide');
           if (options.transition == 0) {
               $nextslide.show();
               $.inAnimation = false;
           }
-          if (options.transition == 1) {
+          if (options.transition) {
               $nextslide.fadeIn(750,
               function() {
                   $.inAnimation = false;
@@ -209,7 +209,6 @@ Thanks to Aen for preloading, fade effect, & vertical centering
           var $this = $(this);
           if ($.inAnimation) return false;
           else $.inAnimation = true;
-          var options = $.extend($.fn.supersized.defaults, $.fn.supersized.options);
           var $currentslide = $this.find('.activeslide');
           $currentslide.removeClass('activeslide');
 
@@ -219,24 +218,24 @@ Thanks to Aen for preloading, fade effect, & vertical centering
           $prevslide = $nextslide.next().length ? $nextslide.next() : $this.find('a:first');
 
           //Display slide counter
-          if (options.slide_counter == 1) {
-              var slidecount = $('#slidecounter .slidenumber').html();
-              $currentslide.prev().length ? slidecount--:slidecount = $this.children().size();
-              $('#slidecounter .slidenumber').html(slidecount);
+          if (options.slide_counter) {
+              var slidecount = $(options.slide_counter).find('.slidenumber').html();
+              $currentslide.prev().length ? slidecount-- : slidecount = $this.children().size();
+              $(options.slide_counter).find('.slidenumber').html(slidecount);
           }
 
           $('.prevslide').removeClass('prevslide');
           $prevslide.addClass('prevslide');
 
           //Captions require img in <a>
-          if (options.slide_captions == 1) $('#slidecaption').html($nextslide.find('img').attr('title'));
+          if (options.captions) $(options.captions).html($nextslide.find('img').attr('title'));
 
           $nextslide.hide().addClass('activeslide');
           if (options.transition == 0) {
               $nextslide.show();
               $.inAnimation = false;
           }
-          if (options.transition == 1) {
+          if (options.transition) {
               $nextslide.fadeIn(750,
               function() {
                   $.inAnimation = false;
@@ -296,9 +295,9 @@ Thanks to Aen for preloading, fade effect, & vertical centering
             //Pause when hover on image
             $this.children().hover(
             function() {
-                if (options.slideshow == 1 && options.pause_hover == 1) {
-                    if (! ($.paused) && options.navigation == 1) {
-                        $('#pauseplay > img').attr("src", "images/pause.gif");
+                if (options.slideshow && options.pause_hover) {
+                    if (! ($.paused) && options.navigation) {
+                        $(options.pause + ' > img').attr("src", "images/pause.gif");
                         clearInterval(slideshow_interval);
                     }
                 }
@@ -307,9 +306,9 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                 else $(this).find('img').attr("title", "");
             },
             function() {
-                if (options.slideshow == 1 && options.pause_hover == 1) {
-                    if (! ($.paused) && options.navigation == 1) {
-                        $('#pauseplay > img').attr("src", "images/pause_dull.gif");
+                if (options.slideshow && options.pause_hover) {
+                    if (! ($.paused) && options.navigation) {
+                        $(options.pause + ' > img').attr("src", "/images/pause_dull.gif");
                         slideshow_interval = setInterval($nextslide, options.slide_interval);
                     }
                 }
@@ -322,14 +321,15 @@ Thanks to Aen for preloading, fade effect, & vertical centering
             });
 
             $this.hide();
-            $('#content').hide();
+            $(options.content).hide();
         });
 
     };
 
     //Adjust image size
-    $.fn.resizenow = function() {
-        var options = $.extend($.fn.supersized.defaults, $.fn.supersized.options);
+    $.fn.resizenow = function(opts) {
+        opts = opts || {};
+        var options = $.extend($.fn.supersized.defaults, opts);
         return this.each(function() {
             var $this = $(this),
             $window = $(window),
@@ -374,9 +374,16 @@ Thanks to Aen for preloading, fade effect, & vertical centering
         transition: 1,
         //0-None, 1-Fade, 2-slide top, 3-slide right, 4-slide bottom, 5-slide left
         pause_hover: 0,
-        slide_counter: 1,
-        slide_captions: 1,
-        slide_interval: 5000
+        slide_interval: 5000,
+
+        loading: '#loading',
+        content: '#content',
+        captions: '#slidecaption',
+        slide_counter: '#slidecounter',
+        navigation: '#navigation',
+        next: '#nextslide',
+        prev: '#prevslide',
+        pause: '#pauseplay'
     };
 
     function log() {
