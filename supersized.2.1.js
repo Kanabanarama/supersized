@@ -33,15 +33,13 @@ Thanks to Aen for preloading, fade effect, & vertical centering
                     $(options.slide_counter).find('.slidenumber').html(1);
                     $(options.slide_counter).find('.totalslides').html($this.children().size());
                 }
-                slideshow_interval = setInterval(
-                  function() {
+                slideshow_interval = setInterval(function() {
                     $this.trigger("nextslide.supersized");
                 },
                 options.slide_interval);
                 if (options.navigation) {
                     //Skip if no navigation
-                    $(options.navigation + ' a').click(
-                      function() {
+                    $(options.navigation + ' a').click(function() {
                         $(this).blur();
                         return false;
                     });
