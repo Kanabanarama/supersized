@@ -53,8 +53,8 @@
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
         $next.addClass(CURRENT_SLIDE).hide().css("z-index", 2);
 
-        if (opts.transition) {
-          $next.fadeIn(750, function() {
+        if (opts.transition && $next[opts.transition]) {
+          $next[opts.transition](1000, function() {
             $this.data("animating", false);
           });
         } else {
@@ -103,7 +103,7 @@
 
       each(function() {
         var $this = $(this),
-            childCss  = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%" },
+            childCss  = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%", margin: 0 },
             buttons   = opts.buttons || {};
 
         if (typeof opts.init == 'function') opts.init.call(this);
@@ -145,7 +145,16 @@
           });
         }
 
-        $this.trigger("load.super");
+        if ($.preload && opts.preload) {
+          $.preload(opts.preload, {
+            onFinish: function(data) {
+              log("preload finished", data);
+              $this.trigger("load.super");
+            }
+          });
+        } else {
+          $this.trigger("load.super");
+        }
       })
       ;
   };
@@ -203,6 +212,7 @@
     interval: 5000,
     center  : true,
     crop    : true,
+    preload : [],
     transition: false,
     buttons     : { pause: '#pauseplay' },
     init        : emptyFunction,
@@ -213,41 +223,45 @@
 
 })(jQuery);
 
-
-$(function(){
-   // transition 0-None, 1-Fade, 2-slide top, 3-slide right, 4-slide bottom, 5-slide left
-  $('#slideshow').supersized({
-    onchange: function(data) {
-      var title = data.title,
-          index = data.index,
-          total = data.total;
-      $("#slidecaption").text(title);
-      $("#slidecounter .current").html((parseInt(index, 10) + 1) + "");
-      $("#slidecounter .total").html(total);
-    },
-    load: function() {
-      $("#loading").hide();
-      $("#chrome").show();
-    },
-    init: function() {
-      $("#loading").show();
-      $("#chrome").hide();
-    },
-    pause: function(trigger) {
-      WE.console.log("pause", trigger);
-      var src = $("#pauseplay").find("img").attr("src");
-      $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "play_dull.gif"));
-    },
-    play: function(trigger) {
-      WE.console.log("play", trigger);
-      var src = $("#pauseplay").find("img").attr("src");
-      $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "pause_dull.gif"));
-      if (trigger === 'click') $(this).trigger("nextslide.super");
-    },
-    buttons: {
-      pause: '#pauseplay',
-      next: '#nextslide',
-      prev: '#prevslide'
-    }
-  });
-});
+if (!WE) WE = {};
+WE.SupersizeSlideshow = {
+  setup: function(opts) {
+    opts = opts || {};
+    $('#slideshow').supersized({
+      transition: 'fadeIn',
+      onchange: function(data) {
+        var title = data.title,
+            index = data.index,
+            total = data.total;
+        $("#slidecaption").text(title);
+        $("#slidecounter .current").html((parseInt(index, 10) + 1) + "");
+        $("#slidecounter .total").html(total);
+      },
+      load: function() {
+        $("#loading").hide();
+        $("#chrome").show();
+      },
+      init: function() {
+        $("#loading").show();
+        $("#chrome").hide();
+      },
+      pause: function(trigger) {
+        WE.console.log("pause", trigger);
+        var src = $("#pauseplay").find("img").attr("src");
+        $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "play_dull.gif"));
+      },
+      play: function(trigger) {
+        WE.console.log("play", trigger);
+        var src = $("#pauseplay").find("img").attr("src");
+        $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "pause_dull.gif"));
+        if (trigger === 'click') $(this).trigger("nextslide.super");
+      },
+      buttons: {
+        pause: '#pauseplay',
+        next: '#nextslide',
+        prev: '#prevslide'
+      },
+      preload: opts.preload
+    });
+  }
+};
