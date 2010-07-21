@@ -55,6 +55,9 @@
       each(function() {
         var $this = $(this);
         if (typeof opts.beforeload == 'function') opts.beforeload();
+        $(window).bind('resize', function() {
+          $this.resizenow();
+        })
         $this.trigger("load.super");
       })
       ;
@@ -113,9 +116,9 @@
     interval: 5000,
     center  : true,
     crop    : true,
+    beforeload  : emptyFunction,
     onload      : emptyFunction,
     onchange    : emptyFunction,
-    beforeload  : emptyFunction,
 
     loading : "#loading",
     chrome  : "#chrome"
@@ -126,7 +129,7 @@
 
 $(function(){
    // transition 0-None, 1-Fade, 2-slide top, 3-slide right, 4-slide bottom, 5-slide left
-  $('#supersize').supersizemic({
+  $('#slideshow').supersizemic({
     onchange: function(data) {
       var title = data.title,
           index = data.index,
