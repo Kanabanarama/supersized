@@ -26,7 +26,7 @@
             $next, text;
 
         if ($this.data("animating")) return;
-        $this.data("animating", true);
+        $this.data("animating", opts.transition);
 
         if ( !index || index >= total || index < 0 ) {
           //invalid index
@@ -37,9 +37,15 @@
         }
 
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
-        $next.addClass(CURRENT_SLIDE).css("z-index", 2).hide().fadeIn(750, function() {
-          $this.data("animating", false);
-        });
+        $next.addClass(CURRENT_SLIDE).hide().css("z-index", 2);
+
+        if (opts.transition) {
+          $next.fadeIn(750, function() {
+            $this.data("animating", false);
+          });
+        } else {
+          $next.show();
+        }
 
         text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
         log("showslide.super", text, index, total);
@@ -54,8 +60,10 @@
       }).
       each(function() {
         var $this = $(this), childCss = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%" };
+
         if (typeof opts.init == 'function') opts.init();
 
+        // TODO support css for dynamically loaded images
         $this.css("position", "fixed").children().each(function() {
           $(this).find('img').andSelf().css(childCss);
         });
@@ -104,7 +112,6 @@
     });
   };
 
-
   var CURRENT_SLIDE = 'ss_current_slide',
 
   log = function() {
@@ -123,12 +130,10 @@
     interval: 5000,
     center  : true,
     crop    : true,
-    init  : emptyFunction,
-    load      : emptyFunction,
-    onchange    : emptyFunction,
-
-    loading : "#loading",
-    chrome  : "#chrome"
+    transition: false,
+    init    : emptyFunction,
+    load        : emptyFunction,
+    onchange    : emptyFunction
   };
 
 })(jQuery);
@@ -142,7 +147,7 @@ $(function(){
           index = data.index,
           total = data.total;
       $("#slidecaption").text(title);
-      $("#slidecounter .current").html((parseInt(index) + 1) + "");
+      $("#slidecounter .current").html((parseInt(index, 10) + 1) + "");
       $("#slidecounter .total").html(total);
     },
     load: function() {
