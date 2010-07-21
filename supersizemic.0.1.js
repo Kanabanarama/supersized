@@ -43,22 +43,19 @@
 
         text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
         log("showslide.super", text, index, total);
-        $this.
-          trigger("caption.super", text).
-          trigger("counter.super", [index, total]);
+        $this.trigger("onchange.super", {
+            title: text,
+            index: index,
+            total: total
+          });
       }).
-      bind("caption.super", function(e, text) {
-        opts.caption(text);
-      }).
-      bind("counter.super", function(e, index, total) {
-        opts.counter(index, total);
+      bind("onchange.super", function(e, data) {
+        if (typeof opts.onchange == 'function') opts.onchange(data);
       }).
       each(function() {
         var $this = $(this);
-        opts.beforeload();
-        $(window).bind("load", function() {
-          $this.trigger("load.super");
-        });
+        if (typeof opts.beforeload == 'function') opts.beforeload();
+        $this.trigger("load.super");
       })
       ;
   };
@@ -114,11 +111,11 @@
 
   $.fn.supersizemic.defaults = {
     interval: 5000,
-    onload  : emptyFunction,
-    caption : emptyFunction,
-    counter : emptyFunction,
     center  : true,
     crop    : true,
+    onload      : emptyFunction,
+    onchange    : emptyFunction,
+    beforeload  : emptyFunction,
 
     loading : "#loading",
     chrome  : "#chrome"
@@ -130,12 +127,13 @@
 $(function(){
    // transition 0-None, 1-Fade, 2-slide top, 3-slide right, 4-slide bottom, 5-slide left
   $('#supersize').supersizemic({
-    counter: function(current, total) {
-      $("#slidecounter .current").html(current);
+    onchange: function(data) {
+      var title = data.title,
+          index = data.index,
+          total = data.total;
+      $("#slidecaption").text(title);
+      $("#slidecounter .current").html(index);
       $("#slidecounter .total").html(total);
-    },
-    caption: function(text) {
-      $("#slidecaption").text(text);
     },
     onload: function() {
       $("#loading").hide();
