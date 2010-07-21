@@ -6,8 +6,7 @@
     return this.hide().
       bind("load.super", function() {
         var $this = $(this);
-        $(opts.loading).hide();
-        $(opts.content).show();
+        opts.onload();
         $this.fadeIn('fast');
         $this.trigger("showslide.super");
         $this.resizenow(opts);
@@ -17,14 +16,15 @@
       }).
       bind("nextslide.super", function() {
         var $this = $(this), next = indexOfCurrentSlide.call($this) + 1;
-        log("nextslide.super", next);
+        log("nextslide.super", next, "waiting", $this.data("animating"));
         $this.trigger("showslide.super", next);
       }).
       bind("showslide.super", function(e, index) {
         var $this = $(this),
             total = $this.children().size(),
             $current = $this.children("." + CURRENT_SLIDE),
-            $next, title;
+            $next, text;
+
         if ($this.data("animating")) return;
         $this.data("animating", true);
 
@@ -41,21 +41,21 @@
           $this.data("animating", false);
         });
 
-        title = $next.attr("title") || $next.attr("alt") || "";
-        log("showslide.super", title, index, total);
-        // set caption
-        $this.trigger("caption.super", title);
-        $this.trigger("counter.super", [index, total]);
+        text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
+        log("showslide.super", text, index, total);
+        $this.
+          trigger("caption.super", text).
+          trigger("counter.super", [index, total]);
       }).
-      bind("caption.super", function(e, title) {
-        opts.caption(title);
+      bind("caption.super", function(e, text) {
+        opts.caption(text);
       }).
       bind("counter.super", function(e, index, total) {
         opts.counter(index, total);
       }).
-      trigger("showslide.super").
       each(function() {
         var $this = $(this);
+        opts.beforeload();
         $(window).bind("load", function() {
           $this.trigger("load.super");
         });
@@ -114,13 +114,36 @@
 
   $.fn.supersizemic.defaults = {
     interval: 5000,
-    caption : function() {},
-    counter : function() {},
+    onload  : emptyFunction,
+    caption : emptyFunction,
+    counter : emptyFunction,
     center  : true,
     crop    : true,
 
     loading : "#loading",
-    chrome  : "#content"
+    chrome  : "#chrome"
   };
 
 })(jQuery);
+
+
+$(function(){
+   // transition 0-None, 1-Fade, 2-slide top, 3-slide right, 4-slide bottom, 5-slide left
+  $('#supersize').supersizemic({
+    counter: function(current, total) {
+      $("#slidecounter .current").html(current);
+      $("#slidecounter .total").html(total);
+    },
+    caption: function(text) {
+      $("#slidecaption").text(text);
+    },
+    onload: function() {
+      $("#loading").hide();
+      $("#chrome").show();
+    },
+    beforeload: function() {
+      $("#loading").show();
+      $("#chrome").hide();
+    }
+  });
+});
