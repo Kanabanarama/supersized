@@ -214,11 +214,16 @@
     crop    : true,
     preload : [],
     transition: false,
-    buttons     : { pause: '#pauseplay' },
+    buttons     : {
+      pause : null,
+      next  : null,
+      prev  : null
+    },
     init        : emptyFunction,
     load        : emptyFunction,
     onchange    : emptyFunction,
-    pause       : emptyFunction
+    pause       : emptyFunction,
+    play        : emptyFunction
   };
 
 })(jQuery);

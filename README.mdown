@@ -20,4 +20,25 @@ call supersize on dom or window ready to display the first image supersized.
 
 The remaining images will fade in at the default interval.
 
+### Options ###
+
+	$.fn.supersized.defaults = {
+		interval: 5000,			// length of time between slide transitions in play mode
+		center  : true,			// center images in browser window
+		crop    : true,			// crop images to browser height and width dimensions
+		preload : [],				// array of image urls to preload assuming $.preload is defined
+		transition: false,	// specifiy jquery method for transition, e.g., fadeIn
+		buttons     : {			// specify button selectors for live click handlers
+			pause : null,
+			next  : null,
+			prev  : null
+		},
+		init        : function() {},  			// callback when plugin is about to be initialized
+		load        : function() {},				// callback when slideshow is loaded and ready to begin
+		onchange    : function(data) {},		// callback after slide has changed. data attributes: title, index, total
+		pause       : function(trigger) {}	// callback after slide has been paused. Trigger is event type
+		pause       : function(trigger) {}	// callback after slide starts playing. Trigger is event type
+	};
+
+
   [original_project]: http://www.buildinternet.com/project/supersized/]
