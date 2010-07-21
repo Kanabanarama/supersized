@@ -3,37 +3,51 @@
   $.fn.supersized = function(options) {
     var opts = $.extend({}, $.fn.supersized.defaults, (options || {}));
 
-    return this.hide().
+    return this.
+      hide().
+
       bind("load.super", function() {
         var $this = $(this);
-        if (typeof opts.load == 'function') opts.load();
+        if (typeof opts.load == 'function') opts.load.call(this);
         $this.fadeIn('fast');
         $this.trigger("showslide.super");
         $this.superresizenow(opts);
-        setInterval(function() {
-          $this.trigger("nextslide.super");
-        }, opts.interval);
+        $this.trigger("play.super");
       }).
-      bind("nextslide.super", function() {
-        var $this = $(this), next = indexOfCurrentSlide.call($this) + 1;
-        log("nextslide.super", next, "waiting", $this.data("animating"));
+
+      bind("nextslide.super", function(e) {
+        var $this = $(this),
+            next = indexOfCurrentSlide.call(this) + 1;
+        log(e.type, next, "waiting", $this.data("animating"));
         $this.trigger("showslide.super", next);
       }).
+
+      bind("prevslide.super", function(e) {
+        var $this = $(this),
+            next = indexOfCurrentSlide.call(this) - 1;
+        log(e.type, next, "waiting", $this.data("animating"));
+        $this.trigger("showslide.super", next);
+      }).
+
       bind("showslide.super", function(e, index) {
         var $this = $(this),
-            total = $this.children().size(),
+            $children = $this.children(),
+            total = $children.size(),
             $current = $this.children("." + CURRENT_SLIDE),
             $next, text;
 
         if ($this.data("animating")) return;
         $this.data("animating", opts.transition);
 
-        if ( !index || index >= total || index < 0 ) {
-          //invalid index
+        if ( !index || index >= total ) {
+          //invalid index, go back to start
           index = 0;
-          $next = $this.children().first();
+          $next = $children.first();
+        } else if (index < 0) {
+          index = total - 1;
+          $next = $children.last();
         } else {
-          $next = $this.children().eq(index);
+          $next = $children.eq(index);
         }
 
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
@@ -55,13 +69,44 @@
             total: total
           });
       }).
-      bind("onchange.super", function(e, data) {
-        if (typeof opts.onchange == 'function') opts.onchange(data);
-      }).
-      each(function() {
-        var $this = $(this), childCss = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%" };
 
-        if (typeof opts.init == 'function') opts.init();
+      bind("onchange.super", function(e, data) {
+        if (typeof opts.onchange == 'function') opts.onchange.call(this, data);
+      }).
+
+      bind("pause.super", function(e, trigger) {
+        var $this = $(this);
+        $this.trigger("stopinterval.super");
+        $this.data("paused", true);
+        if (typeof opts.pause == 'function') opts.pause.call(this, trigger);
+      }).
+
+      bind("play.super", function(e, trigger) {
+        var $this = $(this);
+        $this.trigger("startinterval.super");
+        $this.data("paused", false);
+        if (typeof opts.play == 'function') opts.play.call(this, trigger);
+      }).
+
+      bind("stopinterval.super", function() {
+        var interval = $(this).data("interval");
+        if (interval) clearInterval(interval);
+      }).
+
+      bind("startinterval.super", function() {
+        var $this = $(this);
+        $this.data("interval", setInterval(function() {
+            $this.trigger("nextslide.super");
+          }, opts.interval)
+        );
+      }).
+
+      each(function() {
+        var $this = $(this),
+            childCss  = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%" },
+            buttons   = opts.buttons || {};
+
+        if (typeof opts.init == 'function') opts.init.call(this);
 
         // TODO support css for dynamically loaded images
         $this.css("position", "fixed").children().each(function() {
@@ -71,6 +116,34 @@
         $(window).bind('resize', function() {
           $this.superresizenow(opts);
         });
+
+        if (buttons.pause) {
+          $(buttons.pause).live("click", function(e) {
+            if ($this.data("paused")) {
+              $this.trigger("play.super", e.type);
+            } else {
+              $this.trigger("pause.super", e.type);
+            }
+          });
+        }
+
+        if (buttons.next) {
+          $(buttons.next).live("click", function() {
+            $this.trigger("nextslide.super");
+            if ($this.data('paused')) return;
+            $this.trigger("stopinterval.super");
+            $this.trigger("startinterval.super");
+          });
+        }
+
+        if (buttons.prev) {
+          $(buttons.prev).live("click", function() {
+            $this.trigger("prevslide.super");
+            if ($this.data('paused')) return;
+            $this.trigger("stopinterval.super");
+            $this.trigger("startinterval.super");
+          });
+        }
 
         $this.trigger("load.super");
       })
@@ -120,9 +193,9 @@
   emptyFunction = function() {},
 
   indexOfCurrentSlide = function() {
-    // call with $(this)
-    var current = this.children("." + CURRENT_SLIDE)[0],
-        arr     = this.children().get();
+    var $this = $(this),
+        current = $this.children("." + CURRENT_SLIDE)[0],
+        arr     = $this.children().get();
     return parseInt($.inArray(current, arr) || 0, 10);
   };
 
@@ -131,9 +204,11 @@
     center  : true,
     crop    : true,
     transition: false,
-    init    : emptyFunction,
+    buttons     : { pause: '#pauseplay' },
+    init        : emptyFunction,
     load        : emptyFunction,
-    onchange    : emptyFunction
+    onchange    : emptyFunction,
+    pause       : emptyFunction
   };
 
 })(jQuery);
@@ -157,6 +232,22 @@ $(function(){
     init: function() {
       $("#loading").show();
       $("#chrome").hide();
+    },
+    pause: function(trigger) {
+      WE.console.log("pause", trigger);
+      var src = $("#pauseplay").find("img").attr("src");
+      $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "play_dull.gif"));
+    },
+    play: function(trigger) {
+      WE.console.log("play", trigger);
+      var src = $("#pauseplay").find("img").attr("src");
+      $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "pause_dull.gif"));
+      if (trigger === 'click') $(this).trigger("nextslide.super");
+    },
+    buttons: {
+      pause: '#pauseplay',
+      next: '#nextslide',
+      prev: '#prevslide'
     }
   });
 });
