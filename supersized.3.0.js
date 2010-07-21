@@ -61,7 +61,7 @@
         });
 
         $(window).bind('resize', function() {
-          $this.superresizenow();
+          $this.superresizenow(opts);
         });
 
         $this.trigger("load.super");
@@ -74,24 +74,25 @@
     return this.each(function() {
       var $this = $(this),
       $window = $(window),
-      browserwidth = $window.width(),
-      browserheight = $window.height();
+      browserwidth  = $window.width(),
+      browserheight = $window.height(),
+      browserratio  = (browserheight / browserwidth);
 
       $this.height(browserheight);
       $this.width(browserwidth);
 
       $this.find('img').each(function() {
         var $img = $(this),
-            imagewidth = $img.attr('naturalWidth'),
+            imagewidth  = $img.attr('naturalWidth'),
             imageheight = $img.attr('naturalHeight'),
-            ratio = imageheight / imagewidth;
+            imageratio  = imageheight / imagewidth;
 
-        if ( (browserheight / browserwidth) > ratio && opts.crop ) {
+        if ( browserratio > imageratio && opts.crop ) {
           $img.height(browserheight);
-          $img.width(browserheight / ratio);
+          $img.width(browserheight / imageratio);
         } else {
           $img.width(browserwidth);
-          $img.height(browserwidth * ratio);
+          $img.height(browserwidth * imageratio);
         }
 
         if (opts.center) {
