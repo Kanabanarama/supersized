@@ -24,7 +24,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
             if (options.content) $(options.content).show();
             if ($this.find('.activeslide').length == 0) $this.find('a:first').addClass('activeslide');
             if (options.captions) $(options.captions).html($this.find('.activeslide').find('img').attr('title'));
-            $this.resizenow();
+            $this.superresizenow();
             if (options.navigation) $(options.navigation).show();
             //Slideshow
             if (options.slideshow) {
@@ -202,7 +202,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
               });
           }
 
-          $this.resizenow();
+          $this.superresizenow();
         }).
 
         bind("prevslide.supersized",
@@ -280,13 +280,13 @@ Thanks to Aen for preloading, fade effect, & vertical centering
               });
           }
 
-          $this.resizenow();
+          $this.superresizenow();
         }).
 
         each(function() {
             var $this = $(this);
             $(document).ready(function() {
-                $this.resizenow();
+                $this.superresizenow();
             });
 
             $(window).bind('load',
@@ -320,7 +320,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
 
             $(window).bind("resize",
             function() {
-                $this.resizenow();
+                $this.superresizenow();
             });
 
             $this.hide();
@@ -330,7 +330,7 @@ Thanks to Aen for preloading, fade effect, & vertical centering
     };
 
     //Adjust image size
-    $.fn.resizenow = function(opts) {
+    $.fn.superresizenow = function(opts) {
         opts = opts || {};
         var options = $.extend($.fn.supersized.defaults, opts);
         return this.each(function() {

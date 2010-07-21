@@ -1,15 +1,15 @@
 (function($) {
 
-  $.fn.supersizemic = function(options) {
-    var opts = $.extend({}, $.fn.supersizemic.defaults, (options || {}));
+  $.fn.supersized = function(options) {
+    var opts = $.extend({}, $.fn.supersized.defaults, (options || {}));
 
     return this.hide().
       bind("load.super", function() {
         var $this = $(this);
-        opts.onload();
+        if (typeof opts.load == 'function') opts.load();
         $this.fadeIn('fast');
         $this.trigger("showslide.super");
-        $this.resizenow(opts);
+        $this.superresizenow(opts);
         setInterval(function() {
           $this.trigger("nextslide.super");
         }, opts.interval);
@@ -30,14 +30,14 @@
 
         if ( !index || index >= total || index < 0 ) {
           //invalid index
-          index = 1;
+          index = 0;
           $next = $this.children().first();
         } else {
           $next = $this.children().eq(index);
         }
 
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
-        $next.addClass(CURRENT_SLIDE).css("z-index", 2).fadeIn(750, function() {
+        $next.addClass(CURRENT_SLIDE).css("z-index", 2).hide().fadeIn(750, function() {
           $this.data("animating", false);
         });
 
@@ -53,17 +53,23 @@
         if (typeof opts.onchange == 'function') opts.onchange(data);
       }).
       each(function() {
-        var $this = $(this);
-        if (typeof opts.beforeload == 'function') opts.beforeload();
+        var $this = $(this), childCss = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%" };
+        if (typeof opts.init == 'function') opts.init();
+
+        $this.css("position", "fixed").children().each(function() {
+          $(this).find('img').andSelf().css(childCss);
+        });
+
         $(window).bind('resize', function() {
-          $this.resizenow();
-        })
+          $this.superresizenow();
+        });
+
         $this.trigger("load.super");
       })
       ;
   };
 
-  $.fn.resizenow = function(options) {
+  $.fn.superresizenow = function(options) {
     opts = options || {};
     return this.each(function() {
       var $this = $(this),
@@ -88,7 +94,7 @@
           $img.height(browserwidth * ratio);
         }
 
-        if (options.center) {
+        if (opts.center) {
           $img.css('left', (browserwidth - $(this).width()) / 2);
           $img.css('top', (browserheight - $(this).height()) / 2);
         }
@@ -112,12 +118,12 @@
     return parseInt($.inArray(current, arr) || 0, 10);
   };
 
-  $.fn.supersizemic.defaults = {
+  $.fn.supersized.defaults = {
     interval: 5000,
     center  : true,
     crop    : true,
-    beforeload  : emptyFunction,
-    onload      : emptyFunction,
+    init  : emptyFunction,
+    load      : emptyFunction,
     onchange    : emptyFunction,
 
     loading : "#loading",
@@ -129,20 +135,20 @@
 
 $(function(){
    // transition 0-None, 1-Fade, 2-slide top, 3-slide right, 4-slide bottom, 5-slide left
-  $('#slideshow').supersizemic({
+  $('#slideshow').supersized({
     onchange: function(data) {
       var title = data.title,
           index = data.index,
           total = data.total;
       $("#slidecaption").text(title);
-      $("#slidecounter .current").html(index);
+      $("#slidecounter .current").html((parseInt(index) + 1) + "");
       $("#slidecounter .total").html(total);
     },
-    onload: function() {
+    load: function() {
       $("#loading").hide();
       $("#chrome").show();
     },
-    beforeload: function() {
+    init: function() {
       $("#loading").show();
       $("#chrome").hide();
     }
