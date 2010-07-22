@@ -54,30 +54,31 @@
           $next = $children.eq(index);
         }
 
-        text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
-        $next.addClass(CURRENT_SLIDE).hide().css("z-index", 2);
-        if (!(transition && $next[transition])) {
-          transition = 'show';
-          duration   = 0;
-        }
+        $next.addClass(CURRENT_SLIDE).css({
+          opacity: 0,
+          "z-index": 2
+        });
 
         onShowComplete = function() {
+          var text = getCaption($next);
           log("showslide.super", text, index, total, transition);
-          $current.css("z-index", 0).hide();
+          $current.css("z-index", -1);
+          $next.css("opacity", 1);
           $this.data("animating", false);
           $this.trigger("onchange.super", {
-            title: getCaption($next),
+            title: text,
             index: index,
             total: total
           });
         };
 
-        try {
-          $next[transition](duration, onShowComplete);
-        } catch(err) {
-          log("Error while showing image '" + title + "', " + index + ": " + err.description);
-          $next.show();
+        if (transition == 'fadeIn') {
+          $next.animate({
+            opacity: 1
+          }, duration, onShowComplete);
+        } else {
+          $next.show().css("opacity", 1);
           onShowComplete();
         }
       }).
@@ -228,7 +229,7 @@
         arr     = $this.children().get();
     return parseInt($.inArray(current, arr) || 0, 10);
   },
-  
+
   getCaption = function($el) {
     var $img = $el.find('img');
     return $img.attr("title") || $img.attr("alt") || "";
