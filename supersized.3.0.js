@@ -128,29 +128,35 @@
             } else {
               $this.trigger("pause.super", e.type);
             }
+            e.preventDefault();
           });
         }
 
         if (buttons.next) {
-          $(buttons.next).live("click", function() {
+          $(buttons.next).live("click", function(e) {
             $this.trigger("nextslide.super");
             if ($this.data('paused')) return;
             $this.trigger("stopinterval.super");
             $this.trigger("startinterval.super");
+            e.preventDefault();
           });
         }
 
         if (buttons.prev) {
-          $(buttons.prev).live("click", function() {
+          $(buttons.prev).live("click", function(e) {
             $this.trigger("prevslide.super");
             if ($this.data('paused')) return;
             $this.trigger("stopinterval.super");
             $this.trigger("startinterval.super");
+            e.preventDefault();
           });
         }
 
         if ($.preload && opts.preload) {
           $.preload(opts.preload, {
+            onComplete: function(data) {
+              log("image preload completed", data);
+            },
             onFinish: function(data) {
               log("preload finished", data);
               $this.trigger("load.super");
