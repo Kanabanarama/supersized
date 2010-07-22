@@ -15,21 +15,21 @@
         $this.trigger("play.super");
       }).
 
-      bind("nextslide.super", function(e) {
+      bind("nextslide.super", function(e, transition) {
         var $this = $(this),
             next = indexOfCurrentSlide.call(this) + 1;
         log(e.type, next, "waiting", $this.data("animating"));
-        $this.trigger("showslide.super", next);
+        $this.trigger("showslide.super", next, transition);
       }).
 
-      bind("prevslide.super", function(e) {
+      bind("prevslide.super", function(e, transition) {
         var $this = $(this),
             next = indexOfCurrentSlide.call(this) - 1;
         log(e.type, next, "waiting", $this.data("animating"));
-        $this.trigger("showslide.super", next);
+        $this.trigger("showslide.super", next, transition);
       }).
 
-      bind("showslide.super", function(e, index) {
+      bind("showslide.super", function(e, index, transition) {
         var $this = $(this),
             $children = $this.children(),
             total = $children.size(),
@@ -37,7 +37,7 @@
             $next, text;
 
         if ($this.data("animating")) return;
-        $this.data("animating", opts.transition);
+        $this.data("animating", transition);
 
         if ( !index || index >= total ) {
           //invalid index, go back to start
@@ -53,8 +53,8 @@
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
         $next.addClass(CURRENT_SLIDE).hide().css("z-index", 2);
 
-        if (opts.transition && $next[opts.transition]) {
-          $next[opts.transition](1000, function() {
+        if (transition && $next[transition]) {
+          $next[transition](1000, function() {
             $this.data("animating", false);
           });
         } else {
@@ -100,7 +100,7 @@
       bind("startinterval.super", function() {
         var $this = $(this);
         $this.data("interval", setInterval(function() {
-            $this.trigger("nextslide.super");
+            $this.trigger("nextslide.super", opts.transition);
           }, opts.interval)
         );
       }).
@@ -117,7 +117,7 @@
           $(this).find('img').andSelf().css(childCss);
         });
 
-        $(window).bind('resize', function() {
+        $(window).bind('resize', function(e) {
           $this.superresizenow(opts);
         });
 
