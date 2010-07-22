@@ -54,24 +54,27 @@
           $next = $children.eq(index);
         }
 
+        text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
         $next.addClass(CURRENT_SLIDE).hide().css("z-index", 2);
         if (!(transition && $next[transition])) {
           transition = 'show';
           duration   = 0;
         }
-        $next[transition](duration, function() {
-          $current.css("z-index", 0);
-          $this.data("animating", false);
-        });
-
-        text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
-        log("showslide.super", text, index, total, transition);
-        $this.trigger("onchange.super", {
-            title: text,
-            index: index,
-            total: total
+        try {
+          $next[transition](duration, function() {
+            $current.css("z-index", 0).hide();
+            $this.data("animating", false);
+            log("showslide.super", text, index, total, transition);
+            $this.trigger("onchange.super", {
+              title: text,
+              index: index,
+              total: total
+            });
           });
+        } catch(err) {
+          throw "Error while showing image '" + title + "', " + index + ": " + err.description;
+        }
       }).
 
       bind("onchange.super", function(e, data) {
@@ -118,9 +121,7 @@
         if (typeof opts.init == 'function') opts.init.call(this);
 
         // TODO support css for dynamically loaded images
-        $this.css("position", "fixed").children().each(function() {
-          $(this).find('img').andSelf().css(childCss);
-        });
+        $this.css("position", "fixed").children().css(childCss).find('img').css(childCss);
 
         $(window).bind('resize', function(e) {
           $this.superresizenow(opts);
