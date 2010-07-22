@@ -43,7 +43,7 @@
           //invalid index, go back to start
           index = 0;
           $next = $children.first();
-        } else if (index < 0) {
+        } else if ( index < 0 ) {
           index = total - 1;
           $next = $children.last();
         } else {
@@ -86,6 +86,10 @@
         $this.trigger("startinterval.super");
         $this.data("paused", false);
         if (typeof opts.play == 'function') opts.play.call(this, trigger);
+      }).
+
+      bind("resize.super", function(e) {
+        if (typeof opts.resize == 'function') opts.resize.call(this);
       }).
 
       bind("stopinterval.super", function() {
@@ -191,7 +195,7 @@
         }
 
       });
-    });
+    }).trigger('resize.super');
   };
 
   var CURRENT_SLIDE = 'ss_current_slide',
@@ -227,46 +231,3 @@
   };
 
 })(jQuery);
-
-if (!WE) WE = {};
-WE.SupersizeSlideshow = {
-  setup: function(opts) {
-    opts = opts || {};
-    $('#slideshow').supersized({
-      transition: 'fadeIn',
-      onchange: function(data) {
-        var title = data.title,
-            index = data.index,
-            total = data.total;
-        $("#slidecaption").text(title);
-        $("#slidecounter .current").html((parseInt(index, 10) + 1) + "");
-        $("#slidecounter .total").html(total);
-      },
-      load: function() {
-        $("#loading").hide();
-        $("#chrome").show();
-      },
-      init: function() {
-        $("#loading").show();
-        $("#chrome").hide();
-      },
-      pause: function(trigger) {
-        WE.console.log("pause", trigger);
-        var src = $("#pauseplay").find("img").attr("src");
-        $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "play_dull.gif"));
-      },
-      play: function(trigger) {
-        WE.console.log("play", trigger);
-        var src = $("#pauseplay").find("img").attr("src");
-        $("#pauseplay").find("img").attr("src", src.replace(/[^\/]*\.gif$/, "pause_dull.gif"));
-        if (trigger === 'click') $(this).trigger("nextslide.super");
-      },
-      buttons: {
-        pause: '#pauseplay',
-        next: '#nextslide',
-        prev: '#prevslide'
-      },
-      preload: opts.preload
-    });
-  }
-};

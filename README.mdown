@@ -14,11 +14,9 @@ Given a dom element #supersize containing a set of linked image tags such as:
 		<a href="http://interfacelift.com"><img src="images/snake.jpg" title="Morelia Viridis"/></a>
 	</div>
 
-call supersize on dom or window ready to display the first image supersized.
+Call supersize on dom or window ready to display the first image "supersized." The image is fills up the browser window and is cropped to maintain its aspect ratio. The images will switch out at the default interval.
 
 	$("#supersize").supersize();
-
-The remaining images will fade in at the default interval.
 
 ### Options ###
 
