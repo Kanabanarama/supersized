@@ -38,7 +38,7 @@
             total = $children.size(),
             $current = $this.children("." + CURRENT_SLIDE),
             duration = opts.duration,
-            $next, text;
+            $next, onShowComplete;
 
         if ($this.data("animating")) return;
         $this.data("animating", transition);
@@ -61,19 +61,24 @@
           transition = 'show';
           duration   = 0;
         }
-        try {
-          $next[transition](duration, function() {
-            $current.css("z-index", 0).hide();
-            $this.data("animating", false);
-            log("showslide.super", text, index, total, transition);
-            $this.trigger("onchange.super", {
-              title: text,
-              index: index,
-              total: total
-            });
+
+        onShowComplete = function() {
+          log("showslide.super", text, index, total, transition);
+          $current.css("z-index", 0).hide();
+          $this.data("animating", false);
+          $this.trigger("onchange.super", {
+            title: getCaption($next),
+            index: index,
+            total: total
           });
+        };
+
+        try {
+          $next[transition](duration, onShowComplete);
         } catch(err) {
-          throw "Error while showing image '" + title + "', " + index + ": " + err.description;
+          log("Error while showing image '" + title + "', " + index + ": " + err.description);
+          $next.show();
+          onShowComplete();
         }
       }).
 
@@ -222,6 +227,11 @@
         current = $this.children("." + CURRENT_SLIDE)[0],
         arr     = $this.children().get();
     return parseInt($.inArray(current, arr) || 0, 10);
+  },
+  
+  getCaption = function($el) {
+    var $img = $el.find('img');
+    return $img.attr("title") || $img.attr("alt") || "";
   };
 
   $.fn.supersized.defaults = {
