@@ -10,7 +10,7 @@
         var $this = $(this);
         if (typeof opts.load == 'function') opts.load.call(this);
         $this.fadeIn('fast');
-        $this.trigger("showslide.super");
+        $this.trigger("showslide.super", 0);
         $this.superresizenow(opts);
         $this.trigger("play.super");
       }).
@@ -18,22 +18,26 @@
       bind("nextslide.super", function(e, transition) {
         var $this = $(this),
             next = indexOfCurrentSlide.call(this) + 1;
-        log(e.type, next, "waiting", $this.data("animating"));
-        $this.trigger("showslide.super", next, transition);
+        log(e.type, next, "waiting:", $this.data("animating"), "transition:", transition);
+        $this.trigger("showslide.super", { index: next, transition: transition });
       }).
 
       bind("prevslide.super", function(e, transition) {
         var $this = $(this),
             next = indexOfCurrentSlide.call(this) - 1;
         log(e.type, next, "waiting", $this.data("animating"));
-        $this.trigger("showslide.super", next, transition);
+        $this.trigger("showslide.super", { index: next, transition: transition });
       }).
 
-      bind("showslide.super", function(e, index, transition) {
-        var $this = $(this),
+      bind("showslide.super", function(e, data) {
+        data = data || {};
+        var index = typeof data == 'number' ? data : data.index,
+            transition = (data.transition || false),
+            $this = $(this),
             $children = $this.children(),
             total = $children.size(),
             $current = $this.children("." + CURRENT_SLIDE),
+            duration = opts.duration,
             $next, text;
 
         if ($this.data("animating")) return;
@@ -52,17 +56,17 @@
 
         $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
         $next.addClass(CURRENT_SLIDE).hide().css("z-index", 2);
-
-        if (transition && $next[transition]) {
-          $next[transition](1000, function() {
-            $this.data("animating", false);
-          });
-        } else {
-          $next.show();
+        if (!(transition && $next[transition])) {
+          transition = 'show';
+          duration   = 0;
         }
+        $next[transition](duration, function() {
+          $current.css("z-index", 0);
+          $this.data("animating", false);
+        });
 
         text = $next.find('img').attr("title") || $next.find('img').attr("alt") || "";
-        log("showslide.super", text, index, total);
+        log("showslide.super", text, index, total, transition);
         $this.trigger("onchange.super", {
             title: text,
             index: index,
@@ -100,6 +104,7 @@
       bind("startinterval.super", function() {
         var $this = $(this);
         $this.data("interval", setInterval(function() {
+            log("startinterval.super", opts.transition);
             $this.trigger("nextslide.super", opts.transition);
           }, opts.interval)
         );
@@ -220,10 +225,11 @@
 
   $.fn.supersized.defaults = {
     interval: 5000,
+    duration: 750,
+    transition: false,
     center  : true,
     crop    : true,
     preload : [],
-    transition: false,
     buttons     : {
       pause : null,
       next  : null,
