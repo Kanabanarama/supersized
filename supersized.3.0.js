@@ -8,6 +8,9 @@
 
       bind("load.super", function() {
         var $this = $(this);
+        if ($this.data("loaded")) return;
+        $this.data("loaded", true);
+        log("loading supersize");
         if (typeof opts.load == 'function') opts.load.call(this);
         $this.fadeIn('fast');
         $this.trigger("showslide.super", 0);
@@ -166,8 +169,16 @@
 
         if ($.preload && opts.preload) {
           $.preload(opts.preload, {
+            notFound: opts.notFound,
+            placeholder: opts.placeholder,
             onComplete: function(data) {
-              log("image preload completed", data);
+              var $img = $this.find("img[src*='" + data.image + "']");
+              if (data.found) {
+                $img.parent("a").addClass("loaded");
+                $this.trigger("load.super");
+              } else {
+                $img.parent("a").addClass("failed");
+              }
             },
             onFinish: function(data) {
               log("preload finished", data);
