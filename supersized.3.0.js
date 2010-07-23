@@ -254,6 +254,8 @@
     center  : true,
     crop    : true,
     preload : [],
+    notFound: null,
+    placeholder: null,
     buttons     : {
       pause : null,
       next  : null,

@@ -22,10 +22,13 @@ Call supersize on dom or window ready to display the first image "supersized." T
 
 	$.fn.supersized.defaults = {
 		interval: 5000,			// length of time between slide transitions in play mode
+    duration: 750,
+		transition: false,	// specifiy jquery method for transition, e.g., fadeIn
 		center  : true,			// center images in browser window
 		crop    : true,			// crop images to browser height and width dimensions
-		preload : [],				// array of image urls to preload assuming $.preload is defined
-		transition: false,	// specifiy jquery method for transition, e.g., fadeIn
+		preload : [],				// img selector or array of image urls to preload; passed to $.preload if defined
+		notFound: null,			// replacement url if image not found; passed to $.preload if defined
+    placeholder: null,	// placehold url for images while loading; passed to $.preload if defined
 		buttons     : {			// specify button selectors for live click handlers
 			pause : null,
 			next  : null,
@@ -37,6 +40,5 @@ Call supersize on dom or window ready to display the first image "supersized." T
 		pause       : function(trigger) {}	// callback after slide has been paused. Trigger is event type
 		pause       : function(trigger) {}	// callback after slide starts playing. Trigger is event type
 	};
-
 
   [original_project]: http://www.buildinternet.com/project/supersized/]
