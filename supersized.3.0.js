@@ -11,11 +11,11 @@
         if ($this.data("loaded")) return;
         $this.data("loaded", true);
         log("loading supersize");
-        if (typeof opts.load == 'function') opts.load.call(this);
         $this.fadeIn('fast');
         $this.trigger("showslide.super", 0);
         $this.superresizenow(opts);
         $this.trigger("play.super");
+        if (typeof opts.load == 'function') opts.load.call(this);
       }).
 
       bind("nextslide.super", function(e, transition) {
@@ -175,6 +175,7 @@
               var $img = $this.find("img[src*='" + data.image + "']");
               if (data.found) {
                 $img.parent("a").addClass("loaded");
+                $this.superresizenow(opts);
                 $this.trigger("load.super");
               } else {
                 $img.parent("a").addClass("failed");
