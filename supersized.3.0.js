@@ -89,16 +89,16 @@
 
       bind("pause.super", function(e, trigger) {
         var $this = $(this);
+        if (typeof opts.pause == 'function') opts.pause.call(this, trigger);
         $this.trigger("stopinterval.super");
         $this.data("paused", true);
-        if (typeof opts.pause == 'function') opts.pause.call(this, trigger);
       }).
 
       bind("play.super", function(e, trigger) {
         var $this = $(this);
+        if (typeof opts.play == 'function') opts.play.call(this, trigger);
         $this.trigger("startinterval.super");
         $this.data("paused", false);
-        if (typeof opts.play == 'function') opts.play.call(this, trigger);
       }).
 
       bind("resize.super", function(e) {
