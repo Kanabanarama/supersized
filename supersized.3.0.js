@@ -198,30 +198,30 @@
     return this.each(function() {
       var $this = $(this),
       $window = $(window),
-      browserwidth  = $window.width(),
-      browserheight = $window.height(),
-      browserratio  = (browserheight / browserwidth);
+      browserWidth  = $window.width(),
+      browserHeight = $window.height(),
+      browserRatio  = (browserHeight / browserWidth);
 
-      $this.height(browserheight);
-      $this.width(browserwidth);
+      $this.height(browserHeight);
+      $this.width(browserWidth);
 
       $this.find('img').each(function() {
         var $img = $(this),
-            imagewidth  = $img.attr('naturalWidth'),
-            imageheight = $img.attr('naturalHeight'),
-            imageratio  = imageheight / imagewidth;
+            imageWidth  = $img.attr('naturalWidth'),
+            imageHeight = $img.attr('naturalHeight'),
+            imageRatio  = imageHeight / imageWidth;
 
-        if ( browserratio > imageratio && opts.crop ) {
-          $img.height(browserheight);
-          $img.width(browserheight / imageratio);
+        if ( browserRatio > imageRatio && opts.crop ) {
+          $img.height(browserHeight);
+          $img.width(browserHeight / imageRatio);
         } else {
-          $img.width(browserwidth);
-          $img.height(browserwidth * imageratio);
+          $img.width(browserWidth);
+          $img.height(browserWidth * imageRatio);
         }
 
         if (opts.center) {
-          $img.css('left', (browserwidth - $(this).width()) / 2);
-          $img.css('top', (browserheight - $(this).height()) / 2);
+          $img.css('left', (browserWidth - $(this).width()) / 2);
+          $img.css('top', (browserHeight - $(this).height()) / 2);
         }
 
       });
