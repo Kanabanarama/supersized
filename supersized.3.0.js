@@ -22,68 +22,20 @@
         var $this = $(this),
             next = indexOfCurrentSlide.call(this) + 1;
         log(e.type, next, "waiting:", $this.data("animating"), "transition:", transition);
-        $this.trigger("showslide.super", { index: next, transition: transition });
+        showSlide.call(this, next, transition, opts.duration);
       }).
 
       bind("prevslide.super", function(e, transition) {
         var $this = $(this),
             next = indexOfCurrentSlide.call(this) - 1;
         log(e.type, next, "waiting", $this.data("animating"));
-        $this.trigger("showslide.super", { index: next, transition: transition });
+        showSlide.call(this, next, transition, opts.duration);
       }).
 
       bind("showslide.super", function(e, data) {
         data = data || {};
-        var index = typeof data == 'number' ? data : data.index,
-            transition = (data.transition || false),
-            $this = $(this),
-            $children = $this.children(),
-            total = $children.size(),
-            $current = $this.children("." + CURRENT_SLIDE),
-            duration = opts.duration,
-            $next, onShowComplete;
-
-        if ($this.data("animating")) return;
-        $this.data("animating", transition);
-
-        if ( !index || index >= total ) {
-          //invalid index, go back to start
-          index = 0;
-          $next = $children.first();
-        } else if ( index < 0 ) {
-          index = total - 1;
-          $next = $children.last();
-        } else {
-          $next = $children.eq(index);
-        }
-
-        $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
-        $next.addClass(CURRENT_SLIDE).css({
-          opacity: 0,
-          "z-index": 2
-        });
-
-        onShowComplete = function() {
-          var text = getCaption($next);
-          log("showslide.super", text, index, total, transition);
-          $current.css("z-index", -1);
-          $next.css("opacity", 1);
-          $this.data("animating", false);
-          $this.trigger("onchange.super", {
-            title: text,
-            index: index,
-            total: total
-          });
-        };
-
-        if (transition == 'fadeIn') {
-          $next.animate({
-            opacity: 1
-          }, duration, onShowComplete);
-        } else {
-          $next.show().css("opacity", 1);
-          onShowComplete();
-        }
+        var index = typeof data == 'number' ? data : data.index;
+        showSlide.call(this, index, (data.transition || false), opts.duration);
       }).
 
       bind("onchange.super", function(e, data) {
@@ -229,6 +181,60 @@
   };
 
   var CURRENT_SLIDE = 'ss_current_slide',
+  
+  showSlide = function(index, transition, duration) {
+    index       = index || null;
+    transition  = transition || false;
+    var $this = $(this),
+        $children = $this.children(),
+        total = $children.size(),
+        $current = $this.children("." + CURRENT_SLIDE),
+        duration = duration || $.fn.supersized.defaults.duration,
+        $next, onShowComplete;
+
+    if ($this.data("animating")) return;
+    $this.data("animating", transition);
+
+    if ( !index || index >= total ) {
+      //invalid index, go back to start
+      index = 0;
+      $next = $children.first();
+    } else if ( index < 0 ) {
+      index = total - 1;
+      $next = $children.last();
+    } else {
+      $next = $children.eq(index);
+    }
+
+    $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
+    $next.addClass(CURRENT_SLIDE).css({
+      opacity: 0,
+      "z-index": 2
+    });
+
+    onShowComplete = function() {
+      var text = getCaption($next);
+      log("showslide.super", text, index, total, transition);
+      $current.css("z-index", -1);
+      $next.css("opacity", 1);
+      $this.data("animating", false);
+      $this.trigger("onchange.super", {
+        title: text,
+        index: index,
+        total: total
+      });
+    };
+
+    if (transition == 'fadeIn') {
+      $next.animate({
+        opacity: 1
+      }, duration, onShowComplete);
+    } else {
+      $next.show().css("opacity", 1);
+      onShowComplete();
+    }
+    return this;
+  },
 
   log = function() {
     if (window.console && window.console.log) window.console.log.apply(window.console, arguments);
