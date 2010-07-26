@@ -13,7 +13,7 @@
         log("loading supersize");
         $this.fadeIn('fast');
         $this.trigger("showslide.super", 0);
-        $this.superresizenow(opts);
+        $this.trigger("resizenow.super");
         $this.trigger("play.super");
         if (typeof opts.load == 'function') opts.load.call(this);
       }).
@@ -56,7 +56,10 @@
         $this.data("paused", false);
       }).
 
-      bind("resize.super", function(e) {
+      bind("resizenow.super", function(e, $img) {
+        var $this = $(this),
+            $img  = $img ? $($img) : $this.find('img');
+        resizeSlideshow.call(this, $img, opts);
         if (typeof opts.resize == 'function') opts.resize.call(this);
       }).
 
@@ -85,7 +88,7 @@
         $this.css("position", "fixed").children().css(childCss).find('img').css(childCss);
 
         $(window).bind('resize', function(e) {
-          $this.superresizenow(opts);
+          $this.trigger('resizenow.super');
         });
 
         if (buttons.pause) {
@@ -125,13 +128,9 @@
             placeholder: opts.placeholder,
             onComplete: function(data) {
               var $img = $this.find("img[src*='" + data.image + "']");
-              if (data.found) {
-                $img.parent("a").addClass("loaded");
-                $this.superresizenow(opts);
-                $this.trigger("load.super");
-              } else {
-                $img.parent("a").addClass("failed");
-              }
+              if (data.found) $img.parent("a").addClass("loaded");
+              if (!$this.data("loaded")) $this.trigger("load.super");
+              $this.trigger("resizenow.super", $img);
             },
             onFinish: function(data) {
               log("preload finished", data);
@@ -145,43 +144,8 @@
       ;
   };
 
-  $.fn.superresizenow = function(options) {
-    opts = options || {};
-    return this.each(function() {
-      var $this = $(this),
-      $window = $(window),
-      browserWidth  = $window.width(),
-      browserHeight = $window.height(),
-      browserRatio  = (browserHeight / browserWidth);
-
-      $this.height(browserHeight);
-      $this.width(browserWidth);
-
-      $this.find('img').each(function() {
-        var $img = $(this),
-            imageWidth  = $img.attr('naturalWidth'),
-            imageHeight = $img.attr('naturalHeight'),
-            imageRatio  = imageHeight / imageWidth;
-
-        if ( browserRatio > imageRatio && opts.crop ) {
-          $img.height(browserHeight);
-          $img.width(browserHeight / imageRatio);
-        } else {
-          $img.width(browserWidth);
-          $img.height(browserWidth * imageRatio);
-        }
-
-        if (opts.center) {
-          $img.css('left', (browserWidth - $(this).width()) / 2);
-          $img.css('top', (browserHeight - $(this).height()) / 2);
-        }
-
-      });
-    }).trigger('resize.super');
-  };
-
   var CURRENT_SLIDE = 'ss_current_slide',
-  
+
   showSlide = function(index, transition, duration) {
     index       = index || null;
     transition  = transition || false;
@@ -234,6 +198,42 @@
       onShowComplete();
     }
     return this;
+  },
+
+  resizeSlideshow = function($img, opts) {
+    var $this = $(this),
+    $window = $(window),
+    browserWidth  = $window.width(),
+    browserHeight = $window.height();
+
+    $this.height(browserHeight);
+    $this.width(browserWidth);
+
+    $img.each(function() {
+      $img.trigger("resizing.super");
+      resizeImage.call(this, browserWidth, browserHeight, opts);
+    });
+  },
+
+  resizeImage = function(browserWidth, browserHeight, opts) {
+    var $img = $(this),
+        imageWidth  = $img.attr('naturalWidth'),
+        imageHeight = $img.attr('naturalHeight'),
+        imageRatio  = imageHeight / imageWidth,
+        browserRatio  = (browserHeight / browserWidth);
+
+    if ( browserRatio > imageRatio && opts.crop ) {
+      $img.height(browserHeight);
+      $img.width(browserHeight / imageRatio);
+    } else {
+      $img.width(browserWidth);
+      $img.height(browserWidth * imageRatio);
+    }
+
+    if (opts.center) {
+      $img.css('left', (browserWidth - $(this).width()) / 2);
+      $img.css('top', (browserHeight - $(this).height()) / 2);
+    }
   },
 
   log = function() {
