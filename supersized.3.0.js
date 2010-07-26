@@ -4,14 +4,11 @@
     var opts = $.extend({}, $.fn.supersized.defaults, (options || {}));
 
     return this.
-      hide().
-
-      bind("load.super", function() {
+      bind("begin.super", function() {
         var $this = $(this);
         if ($this.data("loaded")) return;
         $this.data("loaded", true);
         log("loading supersize");
-        $this.fadeIn('fast');
         $this.trigger("showslide.super", 0);
         $this.trigger("resizenow.super");
         $this.trigger("play.super");
@@ -80,7 +77,7 @@
         if (typeof opts.init == 'function') opts.init.call(this);
 
         // TODO support css for dynamically loaded images
-        $this.css("position", "fixed").children().css(childCss).find('img').css(childCss);
+        $this.css("position", "fixed").children().css(childCss);
 
         $(window).bind('resize', function(e) {
           $this.trigger('resizenow.super');
@@ -124,16 +121,16 @@
             onComplete: function(data) {
               var $img = $this.find("img[src*='" + data.image + "']");
               if (data.found) $img.parent("a").addClass("loaded");
-              if (!$this.data("loaded")) $this.trigger("load.super");
+              if (!$this.data("loaded")) $this.trigger("begin.super");
               $this.trigger("resizenow.super", $img);
             },
             onFinish: function(data) {
               log("preload finished", data);
-              $this.trigger("load.super");
+              $this.trigger("begin.super");
             }
           });
         } else {
-          $this.trigger("load.super");
+          $this.trigger("begin.super");
         }
       })
       ;
@@ -250,7 +247,7 @@
       }, opts.interval)
     );
   },
-  
+
   stopInterval = function() {
     var interval = $(this).data("interval");
     if (interval) clearInterval(interval);
