@@ -76,7 +76,7 @@
 
         if (typeof opts.init == 'function') opts.init.call(this);
 
-        $this.css("position", "fixed").children().css(childCss);
+        $this.css("position", "fixed").children().css(childCss).find("img").css("position", "relative");
 
         $(window).bind('resize', function(e) {
           $this.trigger('resizenow.super');
