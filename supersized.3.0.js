@@ -76,7 +76,6 @@
 
         if (typeof opts.init == 'function') opts.init.call(this);
 
-        // TODO support css for dynamically loaded images
         $this.css("position", "fixed").children().css(childCss);
 
         $(window).bind('resize', function(e) {
