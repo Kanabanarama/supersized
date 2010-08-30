@@ -179,22 +179,6 @@
     return $img.data('naturalHeight', $img.height()).data('naturalHeight');
   },
 
-  startInterval = function(opts) {
-    var _this = this, $this = $(_this);
-    $this.data("interval", setInterval(function() {
-        nextSlide.call(_this, opts.transition);
-      }, opts.interval)
-    );
-    $this.trigger("intervalstarted.super");
-  },
-
-  stopInterval = function() {
-    var $this = $(this),
-        interval = $this.data("interval");
-    if (interval) clearInterval(interval);
-    $this.trigger("intervalstopped.super");
-  },
-
   log = function() {
     if (window.console && window.console.log && window.console.log.apply) window.console.log.apply(window.console, arguments);
   },
