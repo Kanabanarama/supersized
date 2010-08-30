@@ -1,7 +1,8 @@
 (function($) {
 
   $.fn.supersized = function(options) {
-    var opts = $.extend({}, $.fn.supersized.defaults, (options || {}));
+    var opts = $.extend({}, $.fn.supersized.defaults, (options || {})),
+        slideshow = new Slideshow(this, opts);
 
     return this.
       bind("begin.super", function() {
@@ -38,7 +39,7 @@
       }).
 
       bind("play.super", function(e, trigger) {
-        play.call(this, trigger, opts);
+        slideshow.play(this, trigger);
       }).
 
       bind("resizenow.super", function(e, img) {
@@ -73,7 +74,7 @@
         if (buttons.pause) {
           $(buttons.pause).live("click", function(e) {
             if ($this.data("paused")) {
-              play.call(_this, e.type, opts);
+              slideshow.play(e.type);
             } else {
               pause.call(_this, e.type, opts);
             }
@@ -128,14 +129,7 @@
   };
 
   var CURRENT_SLIDE = 'ss_current_slide',
-
-  play = function(trigger, opts) {
-    opts = opts || {};
-    var _this = this, $this = $(_this);
-    if (typeof opts.play == 'function') opts.play.call(_this, trigger);
-    startInterval.call(_this, opts);
-    $this.data("paused", false);
-  },
+  proto = 'prototype',
 
   pause = function(trigger, opts) {
     opts = opts || {};
@@ -294,6 +288,24 @@
   getCaption = function($el) {
     var $img = $el.find('img');
     return $img.attr("title") || $img.attr("alt") || "";
+  },
+
+  Slideshow = function(el, opts) {
+    this.el         = el;
+    this.$el        = $(el);
+    this.opts       = opts || {};
+    this.paused     = false;
+    this.animating  = false;
+  };
+
+  Slideshow[proto] = {
+    play: function(trigger, opts) {
+      var el = this.el, $el = this.$el, opts = this.opts;
+      if (typeof opts.play == 'function') opts.play.call(el, trigger);
+      startInterval.call(el, opts);
+      $el.data("paused", false);
+      this.paused = false;
+    }
   };
 
   $.fn.supersized.defaults = {
