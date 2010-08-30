@@ -20,10 +20,7 @@
       }).
 
       bind("prevslide.super", function(e, transition) {
-        var $this = $(this),
-            next = indexOfCurrentSlide.call(this) - 1;
-        log(e.type, next, "waiting", $this.data("animating"));
-        showSlide.call(this, next, transition, opts.duration);
+        prevSlide.call(this, transition, opts.duration);
       }).
 
       bind("showslide.super", function(e, data) {
@@ -102,7 +99,7 @@
 
         if (buttons.prev) {
           $(buttons.prev).live("click", function(e) {
-            $this.trigger("prevslide.super");
+            prevSlide.call(_this);
             if ($this.data('paused')) return;
             stopInterval.call(_this);
             startInterval.call(_this, opts);
@@ -141,9 +138,17 @@
   nextSlide = function(transition, duration) {
     var $this = $(this),
         next = indexOfCurrentSlide.call(this) + 1;
-    log("nextSlide", next, "waiting:", $this.data("animating"), "transition:", transition);
+    log("nextslide.super", next, "waiting:", $this.data("animating"), "transition:", transition);
     showSlide.call(this, next, transition, duration);
     $this.trigger("onnextslide.super");
+  },
+
+  prevSlide = function(transition, duration) {
+    var $this = $(this),
+        next = indexOfCurrentSlide.call(this) - 1;
+    log("prevslide.super", next, "waiting", $this.data("animating"));
+    showSlide.call(this, next, transition, duration);
+    $this.trigger("onprevslide.super");
   },
 
   showSlide = function(index, transition, duration) {
