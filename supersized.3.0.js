@@ -34,17 +34,11 @@
       }).
 
       bind("pause.super", function(e, trigger) {
-        var $this = $(this);
-        if (typeof opts.pause == 'function') opts.pause.call(this, trigger);
-        stopInterval.call(this);
-        $this.data("paused", true);
+        pause.call(this, trigger, opts);
       }).
 
       bind("play.super", function(e, trigger) {
-        var $this = $(this);
-        if (typeof opts.play == 'function') opts.play.call(this, trigger);
-        startInterval.call(this, opts);
-        $this.data("paused", false);
+        play.call(this, trigger, opts);
       }).
 
       bind("resizenow.super", function(e, img) {
@@ -79,9 +73,9 @@
         if (buttons.pause) {
           $(buttons.pause).live("click", function(e) {
             if ($this.data("paused")) {
-              $this.trigger("play.super", e.type);
+              play.call(_this, e.type, opts);
             } else {
-              $this.trigger("pause.super", e.type);
+              pause.call(_this, e.type, opts);
             }
             e.preventDefault();
           });
@@ -134,6 +128,22 @@
   };
 
   var CURRENT_SLIDE = 'ss_current_slide',
+
+  play = function(trigger, opts) {
+    opts = opts || {};
+    var _this = this, $this = $(_this);
+    if (typeof opts.play == 'function') opts.play.call(_this, trigger);
+    startInterval.call(_this, opts);
+    $this.data("paused", false);
+  },
+
+  pause = function(trigger, opts) {
+    opts = opts || {};
+    var _this = this, $this = $(_this);
+    if (typeof opts.pause == 'function') opts.pause.call(_this, trigger);
+    stopInterval.call(_this);
+    $this.data("paused", true);
+  },
 
   nextSlide = function(transition, duration) {
     var $this = $(this),
