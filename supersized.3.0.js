@@ -16,10 +16,7 @@
       }).
 
       bind("nextslide.super", function(e, transition) {
-        var $this = $(this),
-            next = indexOfCurrentSlide.call(this) + 1;
-        log(e.type, next, "waiting:", $this.data("animating"), "transition:", transition);
-        showSlide.call(this, next, transition, opts.duration);
+        nextSlide.call(this, transition, opts.duration);
       }).
 
       bind("prevslide.super", function(e, transition) {
@@ -95,7 +92,7 @@
 
         if (buttons.next) {
           $(buttons.next).live("click", function(e) {
-            $this.trigger("nextslide.super");
+            nextSlide.call(_this);
             if ($this.data('paused')) return;
             stopInterval.call(_this);
             startInterval.call(_this, opts);
@@ -135,7 +132,19 @@
       ;
   };
 
+  $.fn.unsupersized = function() {
+    return this.unbind().die().undelegate();
+  };
+
   var CURRENT_SLIDE = 'ss_current_slide',
+
+  nextSlide = function(transition, duration) {
+    var $this = $(this),
+        next = indexOfCurrentSlide.call(this) + 1;
+    log("nextSlide", next, "waiting:", $this.data("animating"), "transition:", transition);
+    showSlide.call(this, next, transition, duration);
+    $this.trigger("onnextslide.super");
+  },
 
   showSlide = function(index, transition, duration) {
     index       = index || null;
@@ -240,9 +249,9 @@
   },
 
   startInterval = function(opts) {
-    var $this = $(this);
+    var _this = this, $this = $(_this);
     $this.data("interval", setInterval(function() {
-        $this.trigger("nextslide.super", opts.transition);
+        nextSlide.call(_this, opts.transition);
       }, opts.interval)
     );
     $this.trigger("intervalstarted.super");
