@@ -42,14 +42,14 @@
       bind("pause.super", function(e, trigger) {
         var $this = $(this);
         if (typeof opts.pause == 'function') opts.pause.call(this, trigger);
-        $this.trigger("stopinterval.super");
+        stopInterval.call(this);
         $this.data("paused", true);
       }).
 
       bind("play.super", function(e, trigger) {
         var $this = $(this);
         if (typeof opts.play == 'function') opts.play.call(this, trigger);
-        $this.trigger("startinterval.super");
+        startInterval.call(this, opts);
         $this.data("paused", false);
       }).
 
@@ -97,8 +97,8 @@
           $(buttons.next).live("click", function(e) {
             $this.trigger("nextslide.super");
             if ($this.data('paused')) return;
-            $this.trigger("stopinterval.super");
-            $this.trigger("startinterval.super");
+            stopInterval.call(_this);
+            startInterval.call(_this, opts);
             e.preventDefault();
           });
         }
@@ -107,8 +107,8 @@
           $(buttons.prev).live("click", function(e) {
             $this.trigger("prevslide.super");
             if ($this.data('paused')) return;
-            $this.trigger("stopinterval.super");
-            $this.trigger("startinterval.super");
+            stopInterval.call(_this);
+            startInterval.call(_this, opts);
             e.preventDefault();
           });
         }
@@ -245,11 +245,14 @@
         $this.trigger("nextslide.super", opts.transition);
       }, opts.interval)
     );
+    $this.trigger("intervalstarted.super");
   },
 
   stopInterval = function() {
-    var interval = $(this).data("interval");
+    var $this = $(this),
+        interval = $this.data("interval");
     if (interval) clearInterval(interval);
+    $this.trigger("intervalstopped.super");
   },
 
   log = function() {
