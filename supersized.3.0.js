@@ -4,6 +4,8 @@
     var opts = $.extend({}, $.fn.supersized.defaults, (options || {})),
         slideshow = new Slideshow(this, opts);
 
+    this.data("slideshow", slideshow);
+
     return this.
       bind("begin.super", function() {
         var $this = $(this);
@@ -35,11 +37,11 @@
       }).
 
       bind("pause.super", function(e, trigger) {
-        pause.call(this, trigger, opts);
+        slideshow.pause(trigger, opts);
       }).
 
       bind("play.super", function(e, trigger) {
-        slideshow.play(this, trigger);
+        slideshow.play(trigger);
       }).
 
       bind("resizenow.super", function(e, img) {
@@ -73,10 +75,10 @@
 
         if (buttons.pause) {
           $(buttons.pause).live("click", function(e) {
-            if ($this.data("paused")) {
+            if (slideshow.isPaused()) {
               slideshow.play(e.type);
             } else {
-              pause.call(_this, e.type, opts);
+              slideshow.pause(e.type);
             }
             e.preventDefault();
           });
@@ -85,7 +87,7 @@
         if (buttons.next) {
           $(buttons.next).live("click", function(e) {
             nextSlide.call(_this);
-            if ($this.data('paused')) return;
+            if (slideshow.isPaused()) return;
             stopInterval.call(_this);
             startInterval.call(_this, opts);
             e.preventDefault();
@@ -95,7 +97,7 @@
         if (buttons.prev) {
           $(buttons.prev).live("click", function(e) {
             prevSlide.call(_this);
-            if ($this.data('paused')) return;
+            if (slideshow.isPaused()) return;
             stopInterval.call(_this);
             startInterval.call(_this, opts);
             e.preventDefault();
@@ -132,11 +134,7 @@
   proto = 'prototype',
 
   pause = function(trigger, opts) {
-    opts = opts || {};
-    var _this = this, $this = $(_this);
-    if (typeof opts.pause == 'function') opts.pause.call(_this, trigger);
-    stopInterval.call(_this);
-    $this.data("paused", true);
+
   },
 
   nextSlide = function(transition, duration) {
@@ -299,12 +297,20 @@
   };
 
   Slideshow[proto] = {
-    play: function(trigger, opts) {
-      var el = this.el, $el = this.$el, opts = this.opts;
+    play: function(trigger) {
+      var self = this, el = self.el, $el = self.$el, opts = self.opts;
       if (typeof opts.play == 'function') opts.play.call(el, trigger);
       startInterval.call(el, opts);
-      $el.data("paused", false);
-      this.paused = false;
+      self.paused = false;
+    },
+    pause: function(trigger) {
+      var self = this, el = self.el, $el = self.$el, opts = self.opts;
+      if (typeof opts.pause == 'function') opts.pause.call(el, trigger);
+      stopInterval.call(el);
+      self.paused = true;
+    },
+    isPaused: function() {
+      return this.paused;
     }
   };
 
