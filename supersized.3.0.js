@@ -297,6 +297,7 @@
     startInterval: function() {
       var self = this;
       self.intervalId = setInterval(function() {
+          if (self.intervalId) clearInterval(self.intervalId);
           self.nextSlide();
         }, self.opts.interval);
       self.$el.trigger("intervalstarted.super");
@@ -309,9 +310,10 @@
       self.$el.trigger("intervalstopped.super");
       return self;
     },
-    
+
     restartInterval: function() {
-      this.stopInterval().startInterval();
+      var self = this;
+      self.stopInterval().startInterval();
       return self;
     }
 
