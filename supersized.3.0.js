@@ -66,7 +66,7 @@
 
       $this.css("position", "fixed").children().css(childCss).find("img").css("position", "relative");
 
-      $(window).bind('resize', function(e) {
+      $.fn.supersized.browser.bind('resize', function(e) {
         $this.trigger('resizenow.super');
       });
 
@@ -128,19 +128,20 @@
   };
 
   $.fn.resizeImage = function(options) {
-    options = options || {};
+    // use supersized defaults unless explicit override
+    options = options || $.extend({}, $.fn.supersized.defaults, {});
 
     var resize = function() {
-      var $window       = $(window),
-          givenWidth    = options.width  || $window.width(),
-          givenHeight   = options.height || $window.height(),
+      var $browser      = $.fn.supersized.browser,
+          givenWidth    = options.width  || $browser.width(),
+          givenHeight   = options.height || $browser.height(),
           $img          = $(this),
           imageWidth    = $img.attr('naturalWidth') || $img.data('naturalWidth') || ensureNaturalDimension(this, 'Width'),
           imageHeight   = $img.attr('naturalHeight') || $img.data('naturalHeight') || ensureNaturalDimension(this, 'Height'),
           imageRatio    = imageHeight / imageWidth,
           givenRatio    = givenHeight / givenWidth;
 
-      if ( givenRatio > imageRatio && options.crop ) {
+      if (givenRatio > imageRatio && options.crop) {
         $img.height(givenHeight);
         $img.width(givenHeight / imageRatio);
       } else {
@@ -202,6 +203,9 @@
       self.resize();
       if (opts.playSlides) self.play();
       if (typeof opts.load == 'function') opts.load.call(this);
+      _.defer(function() {
+        self.$el.trigger('resize.super');
+      });
     },
 
     play: function(trigger) {
@@ -358,5 +362,7 @@
   };
 
   $.fn.supersized.version = "3.1";
+
+  $.fn.supersized.browser = $(window);
 
 })(jQuery);
