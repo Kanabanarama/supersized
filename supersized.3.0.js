@@ -14,7 +14,7 @@
         log("loading supersize");
         $this.trigger("showslide.super", 0);
         $this.trigger("resizenow.super");
-        $this.trigger("play.super");
+        if (!options.still) $this.trigger("play.super");
         if (typeof opts.load == 'function') opts.load.call(this);
       }).
 
@@ -301,7 +301,7 @@
       $current.removeClass(CURRENT_SLIDE).css("z-index", 1);
       $next.addClass(CURRENT_SLIDE).css({
         opacity: 0,
-        "z-index": 2
+        "z-index": self.opts.zIndex
       });
 
       onShowComplete = function() {
@@ -367,6 +367,7 @@
       next  : null,
       prev  : null
     },
+    zIndex      : 2,
     init        : emptyFunction,
     load        : emptyFunction,
     onchange    : emptyFunction,
