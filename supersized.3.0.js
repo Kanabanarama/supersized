@@ -128,6 +128,43 @@
     return this.unbind().die().undelegate();
   };
 
+  $.fn.resizeImage = function(options) {
+    options = options || {};
+
+    var resize = function() {
+      var $window       = $(window),
+          givenWidth    = options.width  || $window.width(),
+          givenHeight   = options.height || $window.height(),
+          $img          = $(this),
+          imageWidth    = $img.attr('naturalWidth') || $img.data('naturalWidth') || ensureNaturalDimension(this, 'Width'),
+          imageHeight   = $img.attr('naturalHeight') || $img.data('naturalHeight') || ensureNaturalDimension(this, 'Height'),
+          imageRatio    = imageHeight / imageWidth,
+          givenRatio    = givenHeight / givenWidth;
+
+      if ( givenRatio > imageRatio && options.crop ) {
+        $img.height(givenHeight);
+        $img.width(givenHeight / imageRatio);
+      } else {
+        $img.width(givenWidth);
+        $img.height(givenWidth * imageRatio);
+      }
+
+      if (options.center) {
+        $img.css('left', ((givenWidth - $(this).width()) / 2) + 'px');
+        $img.css('top', ((givenHeight - $(this).height()) / 2) + 'px');
+      }
+    },
+
+    ensureNaturalDimension = function(img, dimension) {
+      // necessary for IE
+      var $img = $(img);
+      return $img.data('natural' + dimension, $img[dimension.toLowerCase()]()).data('natural' + dimension);
+    };
+
+    this.each(resize);
+    return this;
+  };
+
   var CURRENT_SLIDE = 'ss_current_slide',
   proto = 'prototype',
 
@@ -140,10 +177,7 @@
     $this.height(browserHeight);
     $this.width(browserWidth);
 
-    $img.each(function() {
-      $img.trigger("resizing.super");
-      resizeImage.call(this, browserWidth, browserHeight, opts);
-    });
+    $img.resizeImage().trigger("resizing.super");
   },
 
   resizeImage = function(browserWidth, browserHeight, opts) {
@@ -339,5 +373,7 @@
     pause       : emptyFunction,
     play        : emptyFunction
   };
+
+  $.fn.supersized.version = "3.1";
 
 })(jQuery);
