@@ -6,19 +6,22 @@
 
     this.data("slideshow", slideshow);
 
-    return this.
-      bind("begin.super", function() {
-        var $this = $(this);
-        if ($this.data("loaded")) return;
-        $this.data("loaded", true);
-        log("loading supersize");
-        $this.trigger("showslide.super", 0);
-        $this.trigger("resizenow.super");
-        if (!options.still) $this.trigger("play.super");
-        if (typeof opts.load == 'function') opts.load.call(this);
-      }).
+    this.bind("load.super", function() {
+      var $this = $(this);
+      if ($this.data("loaded")) return;
+      $this.data("loaded", true);
+      log("loading supersize");
 
-      bind("nextslide.super", function(e, transition) {
+      slideshow.load();
+    }).
+
+    bind("resizenow.super", function(e, img) {
+      slideshow.resize(img);
+    });
+
+    if (opts.playSlides) {
+
+      this.bind("nextslide.super", function(e, transition) {
         slideshow.nextSlide(transition, opts.duration);
       }).
 
@@ -44,84 +47,80 @@
         slideshow.play(trigger);
       }).
 
-      bind("resizenow.super", function(e, img) {
-        var $this = $(this),
-            $img  = img ? $(img) : $this.find('img');
-        resizeSlideshow.call(this, $img, opts);
-        if (typeof opts.resize == 'function') opts.resize.call(this);
-      }).
-
       bind("stopinterval.super", function() {
         slideshow.stopInterval();
       }).
 
       bind("startinterval.super", function() {
         slideshow.startInterval();
-      }).
+      });
+    }
 
-      each(function() {
-        var _this = this,
-            $this = $(this),
-            childCss  = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%", margin: 0 },
-            buttons   = opts.buttons || {};
+    this.each(function() {
+      var _this = this,
+          $this = $(this),
+          childCss  = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%", margin: 0 },
+          buttons   = opts.buttons || {};
 
-        if (typeof opts.init == 'function') opts.init.call(this);
+      if (typeof opts.init == 'function') opts.init.call(this);
 
-        $this.css("position", "fixed").children().css(childCss).find("img").css("position", "relative");
+      $this.css("position", "fixed").children().css(childCss).find("img").css("position", "relative");
 
-        $(window).bind('resize', function(e) {
-          $this.trigger('resizenow.super');
+      $(window).bind('resize', function(e) {
+        $this.trigger('resizenow.super');
+      });
+
+      if (buttons.pause) {
+        $(buttons.pause).live("click", function(e) {
+          if (slideshow.isPaused()) {
+            slideshow.play(e.type);
+          } else {
+            slideshow.pause(e.type);
+          }
+          e.preventDefault();
         });
+      }
 
-        if (buttons.pause) {
-          $(buttons.pause).live("click", function(e) {
-            if (slideshow.isPaused()) {
-              slideshow.play(e.type);
-            } else {
-              slideshow.pause(e.type);
-            }
-            e.preventDefault();
-          });
-        }
+      if (buttons.next) {
+        $(buttons.next).live("click", function(e) {
+          slideshow.nextSlide();
+          if (slideshow.isPaused()) return;
+          slideshow.restartInterval();
+          e.preventDefault();
+        });
+      }
 
-        if (buttons.next) {
-          $(buttons.next).live("click", function(e) {
-            slideshow.nextSlide();
-            if (slideshow.isPaused()) return;
-            slideshow.restartInterval();
-            e.preventDefault();
-          });
-        }
+      if (buttons.prev) {
+        $(buttons.prev).live("click", function(e) {
+          slideshow.prevSlide();
+          if (slideshow.isPaused()) return;
+          slideshow.restartInterval();
+          e.preventDefault();
+        });
+      }
 
-        if (buttons.prev) {
-          $(buttons.prev).live("click", function(e) {
-            slideshow.prevSlide();
-            if (slideshow.isPaused()) return;
-            slideshow.restartInterval();
-            e.preventDefault();
-          });
-        }
+      if ($.preload && opts.preload) {
+        $.preload(opts.preload, {
+          notFound: opts.notFound,
+          placeholder: opts.placeholder,
+          onComplete: function(data) {
+            var $img = $this.find("img[src*='" + data.image + "']");
+            if (data.found) $img.parent("a").addClass("loaded");
+            if (!$this.data("loaded")) $this.trigger("load.super");
+            $this.trigger("resizenow.super", $img);
+          },
+          onFinish: function(data) {
+            log("preload finished", data);
+            $this.trigger("load.super");
+          }
+        });
+      } else {
+        $this.trigger("load.super");
+      }
+    })
+    ;
 
-        if ($.preload && opts.preload) {
-          $.preload(opts.preload, {
-            notFound: opts.notFound,
-            placeholder: opts.placeholder,
-            onComplete: function(data) {
-              var $img = $this.find("img[src*='" + data.image + "']");
-              if (data.found) $img.parent("a").addClass("loaded");
-              if (!$this.data("loaded")) $this.trigger("begin.super");
-              $this.trigger("resizenow.super", $img);
-            },
-            onFinish: function(data) {
-              log("preload finished", data);
-              $this.trigger("begin.super");
-            }
-          });
-        } else {
-          $this.trigger("begin.super");
-        }
-      })
-      ;
+    return this;
   };
 
   $.fn.unsupersized = function() {
@@ -166,56 +165,13 @@
   };
 
   var CURRENT_SLIDE = 'ss_current_slide',
+
   proto = 'prototype',
-
-  resizeSlideshow = function($img, opts) {
-    var $this = $(this),
-    $window = $(window),
-    browserWidth  = $window.width(),
-    browserHeight = $window.height();
-
-    $this.height(browserHeight);
-    $this.width(browserWidth);
-
-    $img.resizeImage().trigger("resizing.super");
-  },
-
-  resizeImage = function(browserWidth, browserHeight, opts) {
-    var $img = $(this),
-        imageWidth  = $img.attr('naturalWidth') || $img.data('naturalWidth') || ensureNaturalWidth(this),
-        imageHeight = $img.attr('naturalHeight') || $img.data('naturalWidth') || ensureNaturalHeight(this),
-        imageRatio  = imageHeight / imageWidth,
-        browserRatio  = (browserHeight / browserWidth);
-
-    if ( browserRatio > imageRatio && opts.crop ) {
-      $img.height(browserHeight);
-      $img.width(browserHeight / imageRatio);
-    } else {
-      $img.width(browserWidth);
-      $img.height(browserWidth * imageRatio);
-    }
-
-    if (opts.center) {
-      $img.css('left', ((browserWidth - $(this).width()) / 2) + 'px');
-      $img.css('top', ((browserHeight - $(this).height()) / 2) + 'px');
-    }
-  },
-
-  ensureNaturalWidth = function(img) {
-    // necessary for IE
-    var $img = $(img);
-    return $img.data('naturalWidth', $img.width()).data('naturalWidth');
-  },
-
-  ensureNaturalHeight = function(img) {
-    // necessary for IE
-    var $img = $(img);
-    return $img.data('naturalHeight', $img.height()).data('naturalHeight');
-  },
 
   log = function() {
     if (window.console && window.console.log && window.console.log.apply) window.console.log.apply(window.console, arguments);
   },
+
   emptyFunction = function() {},
 
   indexOfCurrentSlide = function() {
@@ -240,18 +196,28 @@
   };
 
   Slideshow[proto] = {
+    load: function() {
+      var self = this, opts = self.opts;
+      self.showSlide(0, opts.transition, opts.duration);
+      self.resize();
+      if (opts.playSlides) self.play();
+      if (typeof opts.load == 'function') opts.load.call(this);
+    },
+
     play: function(trigger) {
       var self = this, el = self.el, $el = self.$el, opts = self.opts;
       if (typeof opts.play == 'function') opts.play.call(el, trigger);
       self.startInterval(opts);
       self.paused = false;
     },
+
     pause: function(trigger) {
       var self = this, el = self.el, $el = self.$el, opts = self.opts;
       if (typeof opts.pause == 'function') opts.pause.call(el, trigger);
       self.stopInterval();
       self.paused = true;
     },
+
     isPaused: function() {
       return this.paused;
     },
@@ -328,6 +294,21 @@
       return self;
     },
 
+    resize: function(img) {
+      var self  = this,
+          $el   = self.$el,
+          $img  = img ? $(img) : $el.find('img'),
+          $window = $(window),
+          browserWidth  = $window.width(),
+          browserHeight = $window.height();
+
+      $el.height(browserHeight);
+      $el.width(browserWidth);
+      $img.resizeImage().trigger("resizing.super");
+
+      if (typeof self.opts.resize == 'function') self.opts.resize.call(self);
+    },
+
     startInterval: function() {
       var self = this;
       self.intervalId = setInterval(function() {
@@ -368,6 +349,7 @@
       prev  : null
     },
     zIndex      : 2,
+    playSlides  : true,
     init        : emptyFunction,
     load        : emptyFunction,
     onchange    : emptyFunction,
