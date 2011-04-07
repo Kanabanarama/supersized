@@ -6,12 +6,7 @@
 
     this.data("slideshow", slideshow);
 
-    this.bind("load.super", function() {
-      var $this = $(this);
-      if ($this.data("loaded")) return;
-      $this.data("loaded", true);
-      log("loading supersize");
-
+    this.bind("initialize.super", function() {
       slideshow.load();
     }).
 
@@ -106,16 +101,16 @@
           onComplete: function(data) {
             var $img = $this.find("img[src*='" + data.image + "']");
             if (data.found) $img.parent("a").addClass("loaded");
-            if (!$this.data("loaded")) $this.trigger("load.super");
-            $this.trigger("resizenow.super", $img);
+            if (!$this.data("loaded")) slideshow.load();
+            slideshow.resize($img);
           },
           onFinish: function(data) {
             log("preload finished", data);
-            $this.trigger("load.super");
+            slideshow.load();
           }
         });
       } else {
-        $this.trigger("load.super");
+        slideshow.load();
       }
     })
     ;
@@ -198,7 +193,13 @@
 
   Slideshow[proto] = {
     load: function() {
-      var self = this, opts = self.opts;
+      var self = this, opts = self.opts, $el = self.$el;
+
+      if ($el.data("supersized")) return;
+
+      $el.data("supersized", true);
+      log("supersizing....");
+
       self.showSlide(0, opts.transition, opts.duration);
       self.resize();
       if (opts.playSlides) self.play();
@@ -302,13 +303,14 @@
       var self  = this,
           $el   = self.$el,
           $img  = img ? $(img) : $el.find('img'),
-          $window = $(window),
-          browserWidth  = $window.width(),
-          browserHeight = $window.height();
+          $browser      = $.fn.supersized.browser,
+          browserWidth  = $browser.width(),
+          browserHeight = $browser.height();
 
       $el.height(browserHeight);
       $el.width(browserWidth);
       $img.resizeImage().trigger("resizing.super");
+      $el.trigger("onresize.super");
 
       if (typeof self.opts.resize == 'function') self.opts.resize.call(self);
     },
