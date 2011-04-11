@@ -1,12 +1,14 @@
 (function($) {
 
   $.fn.supersized = function(options) {
-    var opts = $.extend({}, $.fn.supersized.defaults, (options || {})),
+    var self = this,
+        opts = $.extend({}, $.fn.supersized.defaults, (options || {})),
         slideshow = new Slideshow(this, opts);
+        self.slideshow = slideshow;
 
-    this.data("slideshow", slideshow);
+    self.data("slideshow", slideshow);
 
-    this.bind("initialize.super", function() {
+    self.bind("initialize.super", function() {
       slideshow.load();
     }).
 
@@ -16,7 +18,7 @@
 
     if (opts.playSlides) {
 
-      this.bind("nextslide.super", function(e, transition) {
+      self.bind("nextslide.super", function(e, transition) {
         slideshow.nextSlide(transition, opts.duration);
       }).
 
@@ -51,11 +53,12 @@
       });
     }
 
-    this.each(function() {
+    self.each(function() {
       var _this = this,
           $this = $(this),
           childCss  = { position: "absolute", top: 0, left: 0, height:"100%", width:"100%", margin: 0 },
           buttons   = opts.buttons || {};
+          _this.buttons = buttons;
 
       if (typeof opts.init == 'function') opts.init.call(this);
 
@@ -115,11 +118,16 @@
     })
     ;
 
-    return this;
+    return self;
   };
 
   $.fn.unsupersized = function() {
-    return this.unbind().die().undelegate();
+    var self = this, buttons = self.buttons;
+    self.slideshow.stopInterval();
+    if (buttons.pause) $(buttons.pause).die();
+    if (buttons.prev) $(buttons.prev).die();
+    if (buttons.next) $(buttons.next).die();
+    return self.unbind().die().undelegate();
   };
 
   $.fn.resizeImage = function(options) {
@@ -131,8 +139,8 @@
           givenWidth    = options.width  || $browser.width(),
           givenHeight   = options.height || $browser.height(),
           $img          = $(this),
-          imageWidth    = $img.attr('naturalWidth') || $img.data('naturalWidth') || ensureNaturalDimension(this, 'Width'),
-          imageHeight   = $img.attr('naturalHeight') || $img.data('naturalHeight') || ensureNaturalDimension(this, 'Height'),
+          imageWidth    = $img.attr('naturalWidth')   || $img.data('naturalWidth')    || ensureNaturalDimension(this, 'Width'),
+          imageHeight   = $img.attr('naturalHeight')  || $img.data('naturalHeight')   || ensureNaturalDimension(this, 'Height'),
           imageRatio    = imageHeight / imageWidth,
           givenRatio    = givenHeight / givenWidth;
 
@@ -150,9 +158,16 @@
       }
     },
 
+    // necessary for IE
     ensureNaturalDimension = function(img, dimension) {
-      // necessary for IE
       var $img = $(img);
+
+      // ensure natural height and width set
+      $img.height("auto");
+      $img.width("auto");
+
+      log('ensure natural' + dimension, $img[dimension.toLowerCase()]());
+
       return $img.data('natural' + dimension, $img[dimension.toLowerCase()]()).data('natural' + dimension);
     };
 
@@ -200,13 +215,15 @@
       $el.data("supersized", true);
       log("supersizing....");
 
-      self.showSlide(0, opts.transition, opts.duration);
       self.resize();
+      self.showSlide(0, opts.transition, opts.duration);
       if (opts.playSlides) self.play();
       if (typeof opts.load == 'function') opts.load.call(this);
-      _.defer(function() {
-        self.$el.trigger('resize.super');
-      });
+      if (_ && _.defer) {
+        _.defer(function() {
+          self.$el.trigger('resize.super');
+        });
+      }
     },
 
     play: function(trigger) {
@@ -302,11 +319,10 @@
     resize: function(img) {
       var self  = this,
           $el   = self.$el,
-          $img  = img ? $(img) : $el.find('img'),
+          $img  = (img ? $(img) : $el.find('img')),
           $browser      = $.fn.supersized.browser,
           browserWidth  = $browser.width(),
           browserHeight = $browser.height();
-
       $el.height(browserHeight);
       $el.width(browserWidth);
       $img.resizeImage().trigger("resizing.super");
@@ -322,6 +338,7 @@
       self.intervalId = setInterval(function() {
           self.nextSlide();
         }, self.opts.interval);
+
       self.$el.trigger("intervalstarted.super");
       return self;
     },
