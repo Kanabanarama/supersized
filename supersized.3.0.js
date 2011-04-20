@@ -166,8 +166,6 @@
       $img.height("auto");
       $img.width("auto");
 
-      log('ensure natural' + dimension, $img[dimension.toLowerCase()]());
-
       return $img.data('natural' + dimension, $img[dimension.toLowerCase()]()).data('natural' + dimension);
     };
 
