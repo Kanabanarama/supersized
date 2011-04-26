@@ -296,6 +296,7 @@
         $current.css("z-index", -1);
         $next.css("opacity", 1);
         self.animating = false;
+        self.resize();
         $el.trigger("onchange.super", {
           title: text,
           index: index,
@@ -321,11 +322,11 @@
           $browser      = $.fn.supersized.browser,
           browserWidth  = $browser.width(),
           browserHeight = $browser.height();
+      log("resizing", browserWidth, browserHeight);
       $el.height(browserHeight);
       $el.width(browserWidth);
       $img.resizeImage().trigger("resizing.super");
       $el.trigger("onresize.super");
-
       if (typeof self.opts.resize == 'function') self.opts.resize.call(self);
     },
 
