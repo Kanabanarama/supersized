@@ -2,7 +2,7 @@
 
   $.fn.supersized = function(options) {
     var self = this,
-        opts = $.extend({}, $.fn.supersized.defaults, (options || {})),
+        opts = $.extend({}, $.fn.supersized.defaults, options),
         slideshow = new Slideshow(this, opts);
         self.slideshow = slideshow;
 
@@ -132,7 +132,7 @@
 
   $.fn.resizeImage = function(options) {
     // use supersized defaults unless explicit override
-    options = options || $.extend({}, $.fn.supersized.defaults, {});
+    options = $.extend({}, $.fn.supersized.defaults, options);
 
     var resize = function() {
       var $browser      = $.fn.supersized.browser,
@@ -325,7 +325,7 @@
       log("resizing", browserWidth, browserHeight);
       $el.height(browserHeight);
       $el.width(browserWidth);
-      $img.resizeImage().trigger("resizing.super");
+      $img.resizeImage(self.opts).trigger("resizing.super");
       $el.trigger("onresize.super");
       if (typeof self.opts.resize == 'function') self.opts.resize.call(self);
     },
